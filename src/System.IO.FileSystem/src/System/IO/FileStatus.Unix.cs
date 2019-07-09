@@ -2,13 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
+using System;
 
 namespace System.IO
 {
     internal struct FileStatus
     {
         private const int NanosecondsPerTick = 100;
+
+        private const FileAttributes ValidFatFlags =
+                FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System |
+                FileAttributes.Directory | FileAttributes.Archive;
 
         // The last cached stat information about the file
         private Interop.Sys.FileStatus _fileStatus;
@@ -88,7 +94,22 @@ namespace System.IO
             if (fileName.Length > 0 && (fileName[0] == '.' || (_fileStatus.UserFlags & (uint)Interop.Sys.UserFlags.UF_HIDDEN) == (uint)Interop.Sys.UserFlags.UF_HIDDEN))
                 attributes |= FileAttributes.Hidden;
 
+            attributes |= GetFatAttributes(path.ToString());
+
             return attributes != default ? attributes : FileAttributes.Normal;
+        }
+
+        public FileAttributes GetFatAttributes(string path)
+        {
+            EnsureStatInitialized(path);
+
+            if (!_exists)
+                return (FileAttributes)(-1);
+
+            using (SafeFileHandle fd = Interop.Sys.Open(path, Interop.Sys.OpenFlags.O_RDONLY, 0))
+            {
+                return (FileAttributes)Interop.Sys.GetFatAttr(fd) & ValidFatFlags;
+            }
         }
 
         public void SetAttributes(string path, FileAttributes attributes)
@@ -112,6 +133,12 @@ namespace System.IO
 
             if (!_exists)
                 FileSystemInfo.ThrowNotFound(path);
+
+            // Attempt to set FAT file attributes
+            using (SafeFileHandle fd = Interop.Sys.Open(path, Interop.Sys.OpenFlags.O_RDONLY, 0))
+            {
+                Interop.Sys.SetFatAttr(fd, attributes & ValidFatFlags);
+            }
 
             if (Interop.Sys.CanSetHiddenFlag)
             {
@@ -214,7 +241,7 @@ namespace System.IO
         }
 
         internal void SetLastWriteTime(string path, DateTimeOffset time) => SetAccessOrWriteTime(path, time, isAccessTime: false);
-        
+
         private DateTimeOffset UnixTimeToDateTimeOffset(long seconds, long nanoseconds)
         {
             return DateTimeOffset.FromUnixTimeSeconds(seconds).AddTicks(nanoseconds / NanosecondsPerTick).ToLocalTime();
@@ -250,7 +277,7 @@ namespace System.IO
                 buf[1].TvNsec = nanoseconds;
             }
 
-            Interop.CheckIo(Interop.Sys.UTimensat(path, buf), path, InitiallyDirectory);          
+            Interop.CheckIo(Interop.Sys.UTimensat(path, buf), path, InitiallyDirectory);
 
             _fileStatusInitialized = -1;
         }

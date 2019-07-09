@@ -286,6 +286,15 @@
     <Compile Include="$(CommonPath)\CoreLib\Interop\Unix\System.Native\Interop.Read.cs">
       <Link>Common\Interop\Unix\Interop.Read.cs</Link>
     </Compile>
+    <Compile Include="$(CommonPath)\CoreLib\Interop\Unix\System.Native\Interop.Open.cs">
+      <Link>Common\Interop\Unix\Interop.Open.cs</Link>
+    </Compile>
+    <Compile Include="$(CommonPath)\CoreLib\Interop\Unix\System.Native\Interop.OpenFlags.cs">
+      <Link>Common\Interop\Unix\Interop.OpenFlags.cs</Link>
+    </Compile>
+    <Compile Include="$(CommonPath)\Interop\Unix\System.Native\Interop.FatAttr.cs">
+      <Link>Common\Interop\Unix\Interop.FatAttr.cs</Link>
+    </Compile>
     <Compile Include="$(CommonPath)\Interop\Unix\System.Native\Interop.LChflags.cs">
       <Link>Common\Interop\Unix\Interop.LChflags.cs</Link>
     </Compile>

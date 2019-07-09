@@ -507,6 +507,20 @@ DLLEXPORT int32_t SystemNative_FLock(intptr_t fd, int32_t operation);
 DLLEXPORT int32_t SystemNative_ChDir(const char* path);
 
 /**
+ * Gets the FAT attributes of the specified file descriptor.
+ *
+ * Returns the attributes on success; otherwise, returns -1 and errno is set.
+ */
+DLLEXPORT int32_t SystemNative_GetFatAttr(intptr_t fd);
+
+/**
+ * Sets the FAT attributes of the specified file descriptor.
+ *
+ * Returns 0 on success; otherwise, returns -1 and errno is set.
+ */
+DLLEXPORT int32_t SystemNative_SetFatAttr(intptr_t fd, int32_t attributes);
+
+/**
  * Checks the access permissions of the current calling user on the specified path for the specified mode.
  *
  * Returns -1 if the path cannot be found or the if desired access is not granted and errno is set; otherwise, returns

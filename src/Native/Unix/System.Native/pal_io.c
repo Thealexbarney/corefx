@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <fnmatch.h>
+#include <linux/msdos_fs.h>
 #include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -626,6 +627,21 @@ int32_t SystemNative_ChDir(const char* path)
 {
     int32_t result;
     while ((result = chdir(path)) < 0 && errno == EINTR);
+    return result;
+}
+
+int32_t SystemNative_GetFatAttr(intptr_t fd)
+{
+    int32_t result;
+    int32_t attributes;
+    while ((result = ioctl(ToFileDescriptor(fd), FAT_IOCTL_GET_ATTRIBUTES, &attributes)) < 0 && errno == EINTR);
+    return attributes;
+}
+
+int32_t SystemNative_SetFatAttr(intptr_t fd, int32_t attributes)
+{
+    int32_t result;
+    while ((result = ioctl(ToFileDescriptor(fd), FAT_IOCTL_SET_ATTRIBUTES, &attributes)) < 0 && errno == EINTR);
     return result;
 }
 
